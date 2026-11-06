@@ -1,0 +1,20 @@
+{
+  "name": "eduflow-teacher-platform",
+  "version": "1.0.0",
+  "description": "Minimalist modern React platform for course teachers & tutoring centers with Telegram Bot integration, homework management, tuition tracking, automated payment reminders, and financial analytics.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "teacher",
+    "education",
+    "telegram-bot",
+    "tuition",
+    "homework",
+    "crm",
+    "react"
+  ],
+  "author": "EduFlow",
+  "license": "MIT"
+}
