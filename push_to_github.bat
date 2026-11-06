@@ -12,3 +12,4 @@ if %ERRORLEVEL% equ 0 (
   echo [VMANIE] Esli poyavilsya zapros avtorizatsii, voydite cherez brauzer ili vvedite Personal Access Token.
 )
 pause
+

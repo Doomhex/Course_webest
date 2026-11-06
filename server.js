@@ -1414,9 +1414,13 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`=======================================================`);
-  console.log(`🚀 Сервер успешно запущен на http://localhost:${PORT}`);
-  console.log(`📁 База данных: ${DB_PATH}`);
-  console.log(`=======================================================`);
-});
+module.exports = server;
+
+if (require.main === module) {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`=======================================================`);
+    console.log(`🚀 Сервер успешно запущен на http://localhost:${PORT}`);
+    console.log(`📁 База данных: ${DB_PATH}`);
+    console.log(`=======================================================`);
+  });
+}
