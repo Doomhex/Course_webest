@@ -298,8 +298,11 @@ function sendJson(res, statusCode, data) {
 // Main Request Handler
 async function handler(req, res) {
   const host = req.headers.host || 'localhost:3000';
-  const urlObj = new URL(req.url, `http://${host}`);
-  const pathname = urlObj.pathname;
+  let rawUrl = req.url || '/';
+  if (req.headers['x-matched-path']) rawUrl = req.headers['x-matched-path'];
+  const urlObj = new URL(rawUrl, `http://${host}`);
+  let pathname = urlObj.pathname;
+  if (pathname.endsWith('/') && pathname.length > 1) pathname = pathname.slice(0, -1);
   const method = req.method;
 
   if (method === 'OPTIONS') {
