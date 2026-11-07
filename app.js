@@ -654,34 +654,92 @@ function App() {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-50 flex bg-slate-900/60 backdrop-blur-xs">
-            <div className="w-64 bg-white dark:bg-[#17212b] p-4 flex flex-col justify-between shadow-2xl">
+          <div className="md:hidden fixed inset-0 z-50 flex bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+            <div className="w-72 bg-white dark:bg-[#17212b] p-4 flex flex-col justify-between shadow-2xl overflow-y-auto">
               <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                  <span className="font-bold text-slate-900 dark:text-white">LinguaPro Menu</span>
-                  <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400"><Icons.X /></button>
-                </div>
-                <div className="py-3 space-y-1">
-                  {[
-                    { id: 'dashboard', label: 'Обзор', icon: Icons.Dashboard },
-                    { id: 'groups', label: 'Группы', icon: Icons.Layers },
-                    { id: 'students', label: 'Ученики', icon: Icons.Users },
-                    { id: 'homework', label: 'Домашние задания', icon: Icons.BookOpen },
-                    { id: 'submissions', label: 'Проверка ДЗ', icon: Icons.CheckCircle },
-                    { id: 'bot', label: 'Telegram Bot', icon: Icons.Bot },
-                    { id: 'finances', label: 'Финансы & Оплаты', icon: Icons.Wallet }
-                  ].map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => { setActiveTab(m.id); setMobileMenuOpen(false); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold ${
-                        activeTab === m.id ? 'bg-[#2481cc] text-white' : 'text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>{m.label}</span>
+                {/* Drawer Profile Header with Telegram style */}
+                <div className="p-3.5 bg-gradient-to-r from-[#2481cc] to-[#185d96] rounded-2xl text-white mb-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-sm">
+                      АС
+                    </div>
+                    <button onClick={() => setMobileMenuOpen(false)} className="text-white/80 hover:text-white p-1">
+                      <Icons.X />
                     </button>
-                  ))}
+                  </div>
+                  <div className="font-extrabold text-sm">{settings.school_name || 'LinguaPro Center'}</div>
+                  <div className="text-[11px] text-white/80">{settings.teacher_name || 'Анна Сергеевна'} • Преподаватель</div>
                 </div>
+
+                <div className="space-y-1">
+                  {[
+                    { id: 'dashboard', label: 'Обзор (Аналитика)', icon: Icons.Dashboard },
+                    { id: 'groups', label: 'Группы & Табель', icon: Icons.Layers, badge: groups.length },
+                    { id: 'students', label: 'База учеников', icon: Icons.Users, badge: students.length },
+                    { id: 'homework', label: 'Домашние задания', icon: Icons.BookOpen, badge: homeworks.length },
+                    { 
+                      id: 'submissions', 
+                      label: 'Проверка ДЗ', 
+                      icon: Icons.CheckCircle, 
+                      badge: stats?.pendingSubmissions > 0 ? stats.pendingSubmissions : null, 
+                      badgeColor: 'bg-rose-500 text-white' 
+                    },
+                    { id: 'bot', label: 'Telegram Bot & Симулятор', icon: Icons.Bot },
+                    { id: 'finances', label: 'Финансы & Платежи', icon: Icons.Wallet }
+                  ].map(m => {
+                    const Icon = m.icon;
+                    const isActive = activeTab === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => { setActiveTab(m.id); setMobileMenuOpen(false); }}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                          isActive
+                            ? 'bg-[#2481cc] text-white shadow-xs'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#242f3d]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon />
+                          <span>{m.label}</span>
+                        </div>
+                        {m.badge !== undefined && m.badge !== null && (
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                            m.badgeColor || (isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500')
+                          }`}>
+                            {m.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Drawer Bottom Privacy & Theme */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 mt-4">
+                <button
+                  onClick={toggleGlobalPrivacy}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                    financialPrivacy
+                      ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {financialPrivacy ? <Icons.EyeOff /> : <Icons.Eye />}
+                    <span>{financialPrivacy ? 'Финансы скрыты' : 'Финансы открыты'}</span>
+                  </div>
+                  <span className="text-[10px] opacity-75">Банк</span>
+                </button>
+
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                >
+                  <span>{darkMode ? '☀️ Светлая тема' : '🌙 Тёмная тема'}</span>
+                  <span className="text-[10px] text-slate-400">Переключить</span>
+                </button>
               </div>
             </div>
             <div className="flex-1" onClick={() => setMobileMenuOpen(false)}></div>
@@ -689,7 +747,7 @@ function App() {
         )}
 
         {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-7 pb-24 md:pb-6">
           {loading && !stats ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
               <div className="w-8 h-8 border-2 border-[#2481cc] border-t-transparent rounded-full animate-spin"></div>
@@ -806,6 +864,47 @@ function App() {
             </>
           )}
         </main>
+
+        {/* MOBILE BOTTOM NAVIGATION DOCK (Telegram / iOS Style, md:hidden) */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#17212b]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 flex items-center justify-around shadow-lg safe-pb">
+          {[
+            { id: 'dashboard', label: 'Обзор', icon: Icons.Dashboard },
+            { id: 'groups', label: 'Группы', icon: Icons.Layers },
+            { id: 'students', label: 'Ученики', icon: Icons.Users },
+            { 
+              id: 'submissions', 
+              label: 'ДЗ', 
+              icon: Icons.CheckCircle, 
+              badge: stats?.pendingSubmissions > 0 ? stats.pendingSubmissions : null 
+            },
+            { id: 'finances', label: 'Финансы', icon: Icons.Wallet }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+                  isActive
+                    ? 'text-[#2481cc] font-bold'
+                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                }`}
+              >
+                <div className="relative">
+                  <Icon />
+                  {tab.badge && (
+                    <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 bg-rose-500 text-white rounded-full text-[9px] font-black flex items-center justify-center">
+                      {tab.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] mt-0.5">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
       {/* ------------------------------------------------------------- */}
@@ -1396,6 +1495,209 @@ function AnalyticsDashboardView({
 }
 
 // -------------------------------------------------------------------
+// GRADE & ATTENDANCE CUSTOM PICKER MODAL (0 TO 5 SCORES + STATUS)
+// -------------------------------------------------------------------
+function GradePickerModal({ data, onClose, onSave }) {
+  if (!data) return null;
+  const { student, day, record } = data;
+  const [customGrade, setCustomGrade] = useState(record?.grade || '');
+
+  const dateFormatted = useMemo(() => {
+    try {
+      const parts = day.dayStr.split('-');
+      const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return `${parseInt(parts[2], 10)} ${monthNames[mIdx]} (${day.dayOfWeek})`;
+    } catch (e) {
+      return day.dayStr;
+    }
+  }, [day]);
+
+  const currentGrade = record?.grade;
+  const isPresent = record?.status === 'present';
+  const isAbsent = record?.status === 'absent';
+  const isExcused = record?.status === 'excused';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+      <div className="w-full max-w-md bg-white dark:bg-[#17212b] rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Header */}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-[#1a2634]/60">
+          <div className="flex items-center gap-3 min-w-0">
+            {student.photo ? (
+              <img
+                src={student.photo}
+                alt={student.full_name}
+                className="w-10 h-13 rounded-xl object-cover border border-slate-200 dark:border-slate-700 aspect-3-4 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-[#2481cc]/15 text-[#2481cc] font-extrabold flex items-center justify-center text-sm flex-shrink-0">
+                {student.full_name?.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="truncate">
+              <div className="text-[11px] font-bold text-[#2481cc] uppercase tracking-wider">{dateFormatted}</div>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white truncate">
+                {student.full_name}
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                {currentGrade ? `Текущий балл: ${currentGrade}` : isPresent ? 'Текущий статус: Был (без оценки)' : isAbsent ? 'Текущий статус: Отсутствовал' : isExcused ? 'Текущий статус: Уважительная' : 'Отметка пока не выставлена'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
+          >
+            <Icons.X />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+          {/* Quick Grade 0 to 5 Selection */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                ⭐ Выставить оценку (от 0 до 5)
+              </label>
+              <span className="text-[10px] text-slate-400">1 тап для сохранения</span>
+            </div>
+
+            <div className="grid grid-cols-6 gap-2">
+              {[
+                { val: '5', desc: 'Отлично', color: 'bg-emerald-500 hover:bg-emerald-600 text-white' },
+                { val: '4', desc: 'Хорошо', color: 'bg-[#2481cc] hover:bg-[#1d73b8] text-white' },
+                { val: '3', desc: 'Удовл.', color: 'bg-amber-500 hover:bg-amber-600 text-white' },
+                { val: '2', desc: 'Неуд.', color: 'bg-orange-500 hover:bg-orange-600 text-white' },
+                { val: '1', desc: 'Плохо', color: 'bg-rose-500 hover:bg-rose-600 text-white' },
+                { val: '0', desc: '0 баллов', color: 'bg-slate-500 hover:bg-slate-600 text-white' }
+              ].map(g => {
+                const isSelected = String(currentGrade) === g.val;
+                return (
+                  <button
+                    key={g.val}
+                    type="button"
+                    onClick={() => onSave('present', g.val)}
+                    className={`py-3 px-1 rounded-xl flex flex-col items-center justify-center transition-all ${g.color} ${
+                      isSelected ? 'ring-4 ring-offset-2 ring-emerald-400 dark:ring-offset-[#17212b] scale-105 shadow-md' : 'hover:scale-105 shadow-xs'
+                    }`}
+                  >
+                    <span className="text-xl font-black">{g.val}</span>
+                    <span className="text-[8px] opacity-90 leading-tight mt-0.5">{g.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Exact / Custom Grade Input */}
+          <div className="p-3 bg-slate-50 dark:bg-[#1a2634] rounded-xl border border-slate-200/80 dark:border-slate-800">
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+              Или введите свой балл (например 4.5, 3.8):
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={customGrade}
+                onChange={e => setCustomGrade(e.target.value)}
+                placeholder="0 - 5"
+                className="flex-1 px-3 py-2 text-sm font-bold rounded-xl bg-white dark:bg-[#17212b] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2481cc]"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && customGrade !== '') {
+                    onSave('present', customGrade);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (customGrade !== '') onSave('present', customGrade);
+                }}
+                disabled={customGrade === ''}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#2481cc] hover:bg-[#1d73b8] text-white disabled:opacity-50 transition-colors shadow-xs"
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+
+          {/* Attendance Status Selection */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+              📋 Статус присутствия
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onSave('present', null)}
+                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  isPresent && !currentGrade
+                    ? 'bg-emerald-50 border-emerald-500 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ring-2 ring-emerald-400'
+                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <span className="text-emerald-500 font-bold">✓</span>
+                <span>Был (без оценки)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSave('absent', null)}
+                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  isAbsent
+                    ? 'bg-rose-50 border-rose-500 text-rose-800 dark:bg-rose-950 dark:text-rose-200 ring-2 ring-rose-400'
+                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <span className="text-rose-500 font-bold">✕</span>
+                <span>Н (Пропуск)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSave('excused', null)}
+                className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  isExcused
+                    ? 'bg-purple-50 border-purple-500 text-purple-800 dark:bg-purple-950 dark:text-purple-200 ring-2 ring-purple-400'
+                    : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <span className="text-purple-500 font-bold">—</span>
+                <span>Уважительная</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSave('clear', null)}
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+              >
+                <Icons.Trash />
+                <span>Очистить</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end bg-slate-50/50 dark:bg-[#1a2634]/50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------------
 // SECTION 6: GROUPS TELEGRAM DESKTOP SPLIT VIEW + CALENDAR TABLE
 // -------------------------------------------------------------------
 function GroupsTelegramView({
@@ -1414,6 +1716,8 @@ function GroupsTelegramView({
   const [selectedMonth, setSelectedMonth] = useState('2026-11');
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [searchFilter, setSearchFilter] = useState('');
+  const [gradePickerData, setGradePickerData] = useState(null);
+  const [mobileTab, setMobileTab] = useState('calendar');
 
   const activeGroup = groups.find(g => g.id === selectedGroupId) || groups[0] || null;
 
@@ -1446,44 +1750,65 @@ function GroupsTelegramView({
     });
   }, [students, activeGroup, searchFilter]);
 
-  // Toggle or assign attendance
-  const handleToggleAttendance = async (studentId, dayStr) => {
-    const existing = attendanceRecords.find(a => a.student_id === studentId && a.date === dayStr);
-    let nextStatus = 'present';
-    let nextGrade = '5';
+  // Handle grade and attendance save (Requirement: user sets custom grade 0 to 5)
+  const handleSaveGrade = async (status, grade) => {
+    if (!gradePickerData || !activeGroup) return;
+    const { student, day } = gradePickerData;
+    const dayStr = day.dayStr;
 
-    if (existing) {
-      if (existing.status === 'present') {
-        nextStatus = 'absent';
-        nextGrade = null;
-      } else if (existing.status === 'absent') {
-        nextStatus = 'present';
-        nextGrade = '4';
-      } else {
-        nextStatus = 'present';
-        nextGrade = '5';
+    // Optimistic UI update
+    setAttendanceRecords(prev => {
+      const filtered = prev.filter(a => !(a.student_id === student.id && a.date === dayStr));
+      if (status === 'clear' || status === 'delete') {
+        return filtered;
       }
-    }
+      return [
+        ...filtered,
+        {
+          student_id: student.id,
+          group_id: activeGroup.id,
+          date: dayStr,
+          status: status || (grade !== null ? 'present' : 'present'),
+          grade: grade !== null && grade !== undefined && grade !== '' ? String(grade) : null,
+          notes: ''
+        }
+      ];
+    });
+
+    setGradePickerData(null);
 
     try {
       await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id: studentId,
+          student_id: student.id,
           group_id: activeGroup.id,
           date: dayStr,
-          status: nextStatus,
-          grade: nextGrade
+          status: status,
+          grade: grade !== null && grade !== undefined && grade !== '' ? String(grade) : null
         })
       });
+
+      if (status === 'clear') {
+        showToast(`Отметка для ${student.full_name} очищена`);
+      } else if (grade) {
+        showToast(`⭐ Оценка ${grade} выставлена для ${student.full_name}`);
+      } else if (status === 'present') {
+        showToast(`✓ Присутствие отмечено для ${student.full_name}`);
+      } else if (status === 'absent') {
+        showToast(`✕ Пропуск отмечен для ${student.full_name}`);
+      } else if (status === 'excused') {
+        showToast(`— Уважительная причина: ${student.full_name}`);
+      }
       loadAttendance(activeGroup.id, selectedMonth);
     } catch (e) {
-      showToast('Ошибка обновления посещаемости', 'error');
+      showToast('Ошибка сохранения отметки', 'error');
+      loadAttendance(activeGroup.id, selectedMonth);
     }
   };
 
-  // Calendar days generation (1 to 30 for November)
+  // Calendar days generation
   const daysInMonth = useMemo(() => {
     const parts = selectedMonth.split('-');
     const year = parseInt(parts[0], 10);
@@ -1500,270 +1825,350 @@ function GroupsTelegramView({
   }, [selectedMonth]);
 
   return (
-    <div className="h-full flex flex-col lg:flex-row gap-5">
-      {/* ------------------------------------------------------------- */}
-      {/* LEFT PANE: TELEGRAM DESKTOP CHAT-STYLE GROUPS LIST           */}
-      {/* ------------------------------------------------------------- */}
-      <div className="w-full lg:w-80 flex flex-col bg-white dark:bg-[#17212b] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex-shrink-0">
-        <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Все группы</h3>
-            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
-              {groups.length}
-            </span>
+    <div className="space-y-4">
+      {/* Mobile Mode Switcher (Groups list vs Attendance calendar) */}
+      <div className="lg:hidden flex items-center p-1 bg-slate-200/80 dark:bg-slate-800/80 rounded-xl">
+        <button
+          type="button"
+          onClick={() => setMobileTab('groups')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'groups'
+              ? 'bg-white dark:bg-[#17212b] text-[#2481cc] shadow-xs'
+              : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          👥 Список групп ({groups.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('calendar')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'calendar'
+              ? 'bg-white dark:bg-[#17212b] text-[#2481cc] shadow-xs'
+              : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          📅 Табель {activeGroup ? `(${activeGroup.name})` : ''}
+        </button>
+      </div>
+
+      <div className="h-full flex flex-col lg:flex-row gap-5">
+        {/* ------------------------------------------------------------- */}
+        {/* LEFT PANE: TELEGRAM DESKTOP CHAT-STYLE GROUPS LIST           */}
+        {/* ------------------------------------------------------------- */}
+        <div className={`${mobileTab === 'groups' ? 'flex' : 'hidden lg:flex'} w-full lg:w-80 flex-col bg-white dark:bg-[#17212b] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex-shrink-0`}>
+          <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Все группы</h3>
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                {groups.length}
+              </span>
+            </div>
+            <button
+              onClick={() => setModalGroup('create')}
+              className="p-1.5 rounded-lg bg-[#2481cc]/10 hover:bg-[#2481cc] text-[#2481cc] hover:text-white transition-colors"
+              title="Создать новую группу"
+            >
+              <Icons.Plus />
+            </button>
           </div>
-          <button
-            onClick={() => setModalGroup('create')}
-            className="p-1.5 rounded-lg bg-[#2481cc]/10 hover:bg-[#2481cc] text-[#2481cc] hover:text-white transition-colors"
-            title="Создать новую группу"
-          >
-            <Icons.Plus />
-          </button>
+
+          {/* Groups List */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {groups.map(group => {
+              const isSelected = activeGroup?.id === group.id;
+              const count = students.filter(s => s.group_id === group.id).length;
+              const initials = (group.name || 'G').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+              return (
+                <div
+                  key={group.id}
+                  onClick={() => {
+                    setSelectedGroupId(group.id);
+                    setMobileTab('calendar');
+                  }}
+                  className={`p-3 rounded-xl cursor-pointer transition-all flex items-start gap-3 select-none ${
+                    isSelected
+                      ? 'bg-[#2481cc] text-white shadow-xs'
+                      : 'hover:bg-slate-50 dark:hover:bg-[#242f3d] text-slate-700 dark:text-slate-200'
+                  }`}
+                >
+                  {/* Telegram-style Circular Group Badge */}
+                  <div className={`w-10 h-10 min-w-10 rounded-full flex items-center justify-center font-bold text-xs ${
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : 'bg-[#2481cc]/15 text-[#2481cc] dark:bg-slate-700 dark:text-sky-300'
+                  }`}>
+                    {initials}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="font-bold text-xs truncate">{group.name}</span>
+                      <span className={`px-1.5 py-0.2 text-[9px] font-bold rounded-full ${
+                        isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      }`}>
+                        {count} чел.
+                      </span>
+                    </div>
+                    <p className={`text-[11px] truncate ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                      {group.schedule || 'Расписание не указано'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Groups List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {groups.map(group => {
-            const isSelected = activeGroup?.id === group.id;
-            const count = students.filter(s => s.group_id === group.id).length;
-            const initials = (group.name || 'G').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        {/* ------------------------------------------------------------- */}
+        {/* RIGHT PANE: SELECTED GROUP DETAILS & ATTENDANCE CALENDAR      */}
+        {/* ------------------------------------------------------------- */}
+        <div className={`${mobileTab === 'calendar' ? 'flex' : 'hidden lg:flex'} flex-1 flex-col bg-white dark:bg-[#17212b] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden min-w-0`}>
+          {activeGroup ? (
+            <>
+              {/* Group Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('groups')}
+                    className="lg:hidden inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    ← К списку всех групп
+                  </button>
 
-            return (
-              <div
-                key={group.id}
-                onClick={() => setSelectedGroupId(group.id)}
-                className={`p-3 rounded-xl cursor-pointer transition-all flex items-start gap-3 select-none ${
-                  isSelected
-                    ? 'bg-[#2481cc] text-white shadow-xs'
-                    : 'hover:bg-slate-50 dark:hover:bg-[#242f3d] text-slate-700 dark:text-slate-200'
-                }`}
-              >
-                {/* Telegram-style Circular Group Badge */}
-                <div className={`w-10 h-10 min-w-10 rounded-full flex items-center justify-center font-bold text-xs ${
-                  isSelected
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#2481cc]/15 text-[#2481cc] dark:bg-slate-700 dark:text-sky-300'
-                }`}>
-                  {initials}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="font-bold text-xs truncate">{group.name}</span>
-                    <span className={`px-1.5 py-0.2 text-[9px] font-bold rounded-full ${
-                      isSelected ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                    }`}>
-                      {count} чел.
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      {activeGroup.subject || 'Курс'}
+                    </span>
+                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <Icons.Clock />
+                      <span>{activeGroup.schedule}</span>
                     </span>
                   </div>
-                  <p className={`text-[11px] truncate ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
-                    {group.schedule || 'Расписание не указано'}
-                  </p>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{activeGroup.name}</h2>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    onClick={() => setModalHomework(activeGroup.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#2481cc] hover:bg-[#1d73b8] text-white shadow-xs transition-colors"
+                  >
+                    <Icons.Send />
+                    <span>Отправить ДЗ этой группе</span>
+                  </button>
+                  <button
+                    onClick={() => setModalGroup(activeGroup)}
+                    className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    title="Редактировать группу"
+                  >
+                    ✏️
+                  </button>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Attendance & Grades Calendar Controls */}
+              <div className="p-3.5 bg-slate-50 dark:bg-[#1a2634] border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <div className="flex items-center gap-1 bg-white dark:bg-[#17212b] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1">
+                    <button
+                      onClick={() => setSelectedMonth('2026-10')}
+                      className={`px-2 py-0.5 text-xs font-semibold rounded-lg ${selectedMonth === '2026-10' ? 'bg-[#2481cc] text-white' : 'text-slate-500'}`}
+                    >
+                      Октябрь 2026
+                    </button>
+                    <button
+                      onClick={() => setSelectedMonth('2026-11')}
+                      className={`px-2 py-0.5 text-xs font-semibold rounded-lg ${selectedMonth === '2026-11' ? 'bg-[#2481cc] text-white' : 'text-slate-500'}`}
+                    >
+                      Ноябрь 2026
+                    </button>
+                  </div>
+
+                  <div className="hidden md:flex items-center gap-2 text-[11px] text-slate-500">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500"></span> 5 (Отл)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#2481cc]"></span> 4 (Хор)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-500"></span> 3 (Уд)</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-500"></span> ✕ (Пропуск)</span>
+                  </div>
+                </div>
+
+                <div className="relative w-full sm:w-56">
+                  <input
+                    type="text"
+                    value={searchFilter}
+                    onChange={e => setSearchFilter(e.target.value)}
+                    placeholder="Поиск ученика в группе..."
+                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-[#17212b] border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#2481cc]"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                    <Icons.Search />
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile swipe hint */}
+              <div className="sm:hidden px-3 py-1 bg-sky-50 dark:bg-sky-950/40 text-[10px] text-sky-700 dark:text-sky-300 border-b border-sky-100 dark:border-sky-900/40 flex items-center justify-between">
+                <span>👉 Смахните вправо для всех дней месяца</span>
+                <span>Нажмите ячейку для оценки</span>
+              </div>
+
+              {/* CALENDAR ATTENDANCE & GRADES TABLE */}
+              <div className="flex-1 overflow-x-auto overflow-y-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-white dark:bg-[#17212b] border-b border-slate-200 dark:border-slate-800 text-slate-400">
+                      <th className="sticky left-0 bg-white dark:bg-[#17212b] z-20 px-4 py-3 font-semibold min-w-[170px] sm:min-w-[200px] border-r border-slate-200 dark:border-slate-800 shadow-xs">
+                        Ученик
+                      </th>
+                      <th className="px-3 py-3 font-semibold text-center min-w-[80px]">Посещ. %</th>
+                      <th className="px-3 py-3 font-semibold text-center min-w-[80px]">Ср. балл</th>
+                      {daysInMonth.map(d => (
+                        <th key={d.dayNum} className="px-1 py-2 font-semibold text-center min-w-[34px]">
+                          <div className="text-[10px] text-slate-400">{d.dayOfWeek}</div>
+                          <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{d.dayNum}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {groupStudents.length === 0 ? (
+                      <tr>
+                        <td colSpan={3 + daysInMonth.length} className="px-4 py-12 text-center text-slate-400">
+                          В этой группе пока нет учеников
+                        </td>
+                      </tr>
+                    ) : (
+                      groupStudents.map(student => {
+                        const stRecords = attendanceRecords.filter(a => a.student_id === student.id);
+                        const presentCount = stRecords.filter(a => a.status === 'present').length;
+                        const attPercent = stRecords.length > 0 ? Math.round((presentCount / stRecords.length) * 100) : 100;
+
+                        // Dynamic calculation of average grade from real grades
+                        const stGrades = stRecords
+                          .map(a => (a.grade !== null && a.grade !== undefined && a.grade !== '') ? parseFloat(a.grade) : NaN)
+                          .filter(g => !isNaN(g));
+                        const avgGrade = stGrades.length > 0
+                          ? (stGrades.reduce((acc, val) => acc + val, 0) / stGrades.length).toFixed(1)
+                          : (student.avgScore ? (student.avgScore / 20).toFixed(1) : null);
+
+                        return (
+                          <tr key={student.id} className="hover:bg-slate-50/60 dark:hover:bg-[#242f3d]/40 transition-colors">
+                            {/* Student Info with 3:4 Photo (Sticky Left Column) */}
+                            <td
+                              onClick={() => setModalStudentCard(student)}
+                              className="sticky left-0 bg-white dark:bg-[#17212b] z-20 px-3 sm:px-4 py-2.5 border-r border-slate-200 dark:border-slate-800 shadow-xs cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                {student.photo ? (
+                                  <img
+                                    src={student.photo}
+                                    alt={student.full_name}
+                                    className="w-8 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 aspect-3-4 flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-500 aspect-3-4 flex-shrink-0">
+                                    {student.full_name?.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="truncate">
+                                  <div className="font-bold text-slate-900 dark:text-white group-hover:text-[#2481cc] transition-colors truncate">
+                                    {student.full_name}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 truncate">
+                                    {student.telegram_username || student.phone || 'Нет Telegram'}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Attendance % Pill */}
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                attPercent >= 80
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                              }`}>
+                                {attPercent}%
+                              </span>
+                            </td>
+
+                            {/* Dynamic Real Average Grade Pill */}
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                avgGrade !== null
+                                  ? parseFloat(avgGrade) >= 4.5
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                    : parseFloat(avgGrade) >= 3.5
+                                    ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                  : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+                              }`}>
+                                {avgGrade !== null ? `${avgGrade} / 5.0` : '—'}
+                              </span>
+                            </td>
+
+                            {/* Days 1..30/31 Grid Cells */}
+                            {daysInMonth.map(d => {
+                              const rec = stRecords.find(a => a.date === d.dayStr);
+                              const isPresent = rec?.status === 'present';
+                              const isAbsent = rec?.status === 'absent';
+                              const isExcused = rec?.status === 'excused';
+                              const grade = rec?.grade;
+                              const hasGrade = grade !== null && grade !== undefined && grade !== '';
+
+                              let bgClass = 'bg-slate-100 dark:bg-slate-800/60 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700';
+                              if (hasGrade) {
+                                const gNum = parseFloat(grade);
+                                if (gNum >= 4.5) bgClass = 'bg-emerald-500 text-white shadow-xs';
+                                else if (gNum >= 3.5) bgClass = 'bg-[#2481cc] text-white shadow-xs';
+                                else if (gNum >= 2.5) bgClass = 'bg-amber-500 text-white shadow-xs';
+                                else if (gNum >= 1.5) bgClass = 'bg-orange-500 text-white shadow-xs';
+                                else bgClass = 'bg-rose-500 text-white shadow-xs';
+                              } else if (isPresent) {
+                                bgClass = 'bg-emerald-500 text-white shadow-xs';
+                              } else if (isAbsent) {
+                                bgClass = 'bg-rose-500 text-white shadow-xs';
+                              } else if (isExcused) {
+                                bgClass = 'bg-purple-500 text-white shadow-xs';
+                              }
+
+                              return (
+                                <td key={d.dayNum} className="px-1 py-1.5 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => setGradePickerData({ student, day: d, record: rec })}
+                                    className={`attendance-cell ${bgClass}`}
+                                    title={`${student.full_name} (${d.dayStr}): ${hasGrade ? `Оценка ${grade}` : isPresent ? 'Присутствовал' : isAbsent ? 'Отсутствовал' : isExcused ? 'Уважительная' : 'Нажмите, чтобы поставить оценку от 0 до 5 или статус'}`}
+                                  >
+                                    {hasGrade ? grade : isPresent ? '✓' : isAbsent ? '✕' : isExcused ? '—' : '+'}
+                                  </button>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="py-24 text-center text-slate-400 text-sm">Выберите группу из списка слева</div>
+          )}
         </div>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* RIGHT PANE: SELECTED GROUP DETAILS & ATTENDANCE CALENDAR      */}
-      {/* ------------------------------------------------------------- */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-[#17212b] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden min-w-0">
-        {activeGroup ? (
-          <>
-            {/* Group Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                    {activeGroup.subject || 'Курс'}
-                  </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
-                    <Icons.Clock />
-                    <span>{activeGroup.schedule}</span>
-                  </span>
-                </div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{activeGroup.name}</h2>
-              </div>
-
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <button
-                  onClick={() => setModalHomework(activeGroup.id)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#2481cc] hover:bg-[#1d73b8] text-white shadow-xs transition-colors"
-                >
-                  <Icons.Send />
-                  <span>Отправить ДЗ этой группе</span>
-                </button>
-                <button
-                  onClick={() => setModalGroup(activeGroup)}
-                  className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                  title="Редактировать группу"
-                >
-                  ✏️
-                </button>
-              </div>
-            </div>
-
-            {/* Attendance & Grades Calendar Controls */}
-            <div className="p-3.5 bg-slate-50 dark:bg-[#1a2634] border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 bg-white dark:bg-[#17212b] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1">
-                  <button
-                    onClick={() => setSelectedMonth('2026-10')}
-                    className={`px-2 py-0.5 text-xs font-semibold rounded-lg ${selectedMonth === '2026-10' ? 'bg-[#2481cc] text-white' : 'text-slate-500'}`}
-                  >
-                    Октябрь 2026
-                  </button>
-                  <button
-                    onClick={() => setSelectedMonth('2026-11')}
-                    className={`px-2 py-0.5 text-xs font-semibold rounded-lg ${selectedMonth === '2026-11' ? 'bg-[#2481cc] text-white' : 'text-slate-500'}`}
-                  >
-                    Ноябрь 2026
-                  </button>
-                </div>
-
-                <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500"></span> Присутствовал (✓)</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-500"></span> Пропуск (✕)</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-[#2481cc]"></span> Оценка (5/4/3)</span>
-                </div>
-              </div>
-
-              <div className="relative w-full sm:w-56">
-                <input
-                  type="text"
-                  value={searchFilter}
-                  onChange={e => setSearchFilter(e.target.value)}
-                  placeholder="Поиск ученика в группе..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-[#17212b] border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#2481cc]"
-                />
-                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                  <Icons.Search />
-                </div>
-              </div>
-            </div>
-
-            {/* --------------------------------------------------------- */}
-            {/* CALENDAR ATTENDANCE & GRADES TABLE (Requirement #6)       */}
-            {/* --------------------------------------------------------- */}
-            <div className="flex-1 overflow-x-auto overflow-y-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-white dark:bg-[#17212b] border-b border-slate-200 dark:border-slate-800 text-slate-400">
-                    <th className="sticky left-0 bg-white dark:bg-[#17212b] z-10 px-4 py-3 font-semibold min-w-[200px] border-r border-slate-100 dark:border-slate-800">
-                      Ученик
-                    </th>
-                    <th className="px-3 py-3 font-semibold text-center min-w-[90px]">Посещ. %</th>
-                    <th className="px-3 py-3 font-semibold text-center min-w-[80px]">Балл</th>
-                    {daysInMonth.map(d => (
-                      <th key={d.dayNum} className="px-1 py-2 font-semibold text-center min-w-[34px]">
-                        <div className="text-[10px] text-slate-400">{d.dayOfWeek}</div>
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{d.dayNum}</div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {groupStudents.length === 0 ? (
-                    <tr>
-                      <td colSpan={3 + daysInMonth.length} className="px-4 py-12 text-center text-slate-400">
-                        В этой группе пока нет учеников
-                      </td>
-                    </tr>
-                  ) : (
-                    groupStudents.map(student => {
-                      const stRecords = attendanceRecords.filter(a => a.student_id === student.id);
-                      const presentCount = stRecords.filter(a => a.status === 'present').length;
-                      const attPercent = stRecords.length > 0 ? Math.round((presentCount / stRecords.length) * 100) : 100;
-
-                      return (
-                        <tr key={student.id} className="hover:bg-slate-50/60 dark:hover:bg-[#242f3d]/40 transition-colors">
-                          {/* Student Info with 3:4 Photo (Sticky Left Column) */}
-                          <td
-                            onClick={() => setModalStudentCard(student)}
-                            className="sticky left-0 bg-white dark:bg-[#17212b] z-10 px-4 py-2.5 border-r border-slate-100 dark:border-slate-800 cursor-pointer group"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              {student.photo ? (
-                                <img
-                                  src={student.photo}
-                                  alt={student.full_name}
-                                  className="w-8 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 aspect-3-4"
-                                />
-                              ) : (
-                                <div className="w-8 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-500 aspect-3-4">
-                                  {student.full_name?.slice(0, 2).toUpperCase()}
-                                </div>
-                              )}
-                              <div className="truncate">
-                                <div className="font-bold text-slate-900 dark:text-white group-hover:text-[#2481cc] transition-colors truncate">
-                                  {student.full_name}
-                                </div>
-                                <div className="text-[10px] text-slate-400">
-                                  {student.telegram_username || student.phone || 'Нет Telegram'}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Attendance % Pill */}
-                          <td className="px-3 py-2.5 text-center">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              attPercent >= 80
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                            }`}>
-                              {attPercent}%
-                            </span>
-                          </td>
-
-                          {/* Average Grade Pill */}
-                          <td className="px-3 py-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                              4.8 / 5.0
-                            </span>
-                          </td>
-
-                          {/* Days 1..30 Grid Cells */}
-                          {daysInMonth.map(d => {
-                            const rec = stRecords.find(a => a.date === d.dayStr);
-                            const isPresent = rec?.status === 'present';
-                            const isAbsent = rec?.status === 'absent';
-                            const grade = rec?.grade;
-
-                            return (
-                              <td key={d.dayNum} className="px-1 py-1.5 text-center">
-                                <button
-                                  onClick={() => handleToggleAttendance(student.id, d.dayStr)}
-                                  className={`attendance-cell ${
-                                    grade
-                                      ? 'bg-[#2481cc] text-white shadow-xs'
-                                      : isPresent
-                                      ? 'bg-emerald-500 text-white shadow-xs'
-                                      : isAbsent
-                                      ? 'bg-rose-500 text-white shadow-xs'
-                                      : 'bg-slate-100 dark:bg-slate-800/60 text-slate-300 dark:text-slate-600 hover:bg-slate-200'
-                                  }`}
-                                  title={`${student.full_name} (${d.dayStr}): ${grade ? `Оценка ${grade}` : isPresent ? 'Присутствовал' : isAbsent ? 'Отсутствовал' : 'Нажмите, чтобы отметить'}`}
-                                >
-                                  {grade || (isPresent ? '✓' : isAbsent ? '✕' : '—')}
-                                </button>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <div className="py-24 text-center text-slate-400 text-sm">Выберите группу из списка слева</div>
-        )}
-      </div>
+      {/* Grade and Attendance Custom Picker Modal */}
+      {gradePickerData && (
+        <GradePickerModal
+          data={gradePickerData}
+          onClose={() => setGradePickerData(null)}
+          onSave={handleSaveGrade}
+        />
+      )}
     </div>
   );
 }
@@ -2986,7 +3391,21 @@ function ReviewSubmissionModal({ submission, onClose, onSuccess }) {
         </div>
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold mb-1">Оценка / Балл:</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block font-bold">Оценка / Балл:</label>
+              <div className="flex items-center gap-1">
+                {['5', '4', '3', '2', '1', '0'].map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGrade(g + '/5')}
+                    className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-700 hover:bg-[#2481cc] hover:text-white transition-colors"
+                  >
+                    {g}/5
+                  </button>
+                ))}
+              </div>
+            </div>
             <input type="text" required value={grade} onChange={e => setGrade(e.target.value)} placeholder="5/5, 95/100, Зачет" className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#242f3d] border border-slate-200 dark:border-slate-700 font-bold" />
           </div>
           <div>

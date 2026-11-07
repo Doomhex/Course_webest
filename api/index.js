@@ -589,17 +589,29 @@ async function handler(req, res) {
       const { student_id, group_id, date, status, grade, notes } = body;
       if (!student_id || !date) return sendJson(res, 400, { error: 'student_id and date required' });
 
+      if (status === 'clear' || status === 'delete' || status === 'none') {
+        if (useFallbackDb) {
+          memData.attendance = (memData.attendance || []).filter(a => !(a.student_id === student_id && a.date === date));
+        } else {
+          try { db.prepare('DELETE FROM attendance WHERE student_id = ? AND date = ?').run(student_id, date); } catch (e) {}
+        }
+        return sendJson(res, 200, { success: true, cleared: true });
+      }
+
+      const cleanGrade = (grade !== undefined && grade !== null && grade !== '') ? String(grade).trim() : null;
+      const cleanStatus = status || (cleanGrade !== null ? 'present' : 'present');
+
       if (useFallbackDb) {
         if (!memData.attendance) memData.attendance = [];
         const existing = memData.attendance.find(a => a.student_id === student_id && a.date === date);
         if (existing) {
-          existing.status = status || 'present';
-          existing.grade = grade || null;
+          existing.status = cleanStatus;
+          existing.grade = cleanGrade;
           existing.notes = notes || '';
           existing.group_id = group_id || existing.group_id;
         } else {
           memData.attendance.push({
-            id: memData.attendance.length + 1, student_id, group_id, date, status: status || 'present', grade: grade || null, notes: notes || ''
+            id: memData.attendance.length + 1, student_id, group_id, date, status: cleanStatus, grade: cleanGrade, notes: notes || ''
           });
         }
         return sendJson(res, 200, { success: true });
@@ -611,12 +623,25 @@ async function handler(req, res) {
           VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(student_id, date) DO UPDATE SET
             status = excluded.status, grade = excluded.grade, notes = excluded.notes, group_id = excluded.group_id
-        `).run(student_id, group_id || null, date, status || 'present', grade || null, notes || '');
+        `).run(student_id, group_id || null, date, cleanStatus, cleanGrade, notes || '');
         const record = db.prepare('SELECT * FROM attendance WHERE student_id = ? AND date = ?').get(student_id, date);
         return sendJson(res, 200, record);
       } catch (e) {
         return sendJson(res, 500, { error: e.message });
       }
+    }
+
+    if (pathname === '/api/attendance' && method === 'DELETE') {
+      const studentId = urlObj.searchParams.get('student_id');
+      const date = urlObj.searchParams.get('date');
+      if (studentId && date) {
+        if (useFallbackDb) {
+          memData.attendance = (memData.attendance || []).filter(a => !(String(a.student_id) === String(studentId) && a.date === date));
+        } else {
+          try { db.prepare('DELETE FROM attendance WHERE student_id = ? AND date = ?').run(studentId, date); } catch (e) {}
+        }
+      }
+      return sendJson(res, 200, { success: true, cleared: true });
     }
 
     // Homeworks

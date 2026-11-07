@@ -1209,6 +1209,15 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: 'student_id and date are required' });
       }
 
+      // Check if clearing record
+      if (status === 'clear' || status === 'delete' || status === 'none') {
+        db.prepare('DELETE FROM attendance WHERE student_id = ? AND date = ?').run(student_id, date);
+        return sendJson(res, 200, { success: true, cleared: true });
+      }
+
+      const cleanGrade = (grade !== undefined && grade !== null && grade !== '') ? String(grade).trim() : null;
+      const cleanStatus = status || (cleanGrade !== null ? 'present' : 'present');
+
       db.prepare(`
         INSERT INTO attendance (student_id, group_id, date, status, grade, notes)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -1217,10 +1226,19 @@ const server = http.createServer(async (req, res) => {
           grade = excluded.grade,
           notes = excluded.notes,
           group_id = excluded.group_id
-      `).run(student_id, group_id || null, date, status || 'present', grade || null, notes || '');
+      `).run(student_id, group_id || null, date, cleanStatus, cleanGrade, notes || '');
 
       const record = db.prepare('SELECT * FROM attendance WHERE student_id = ? AND date = ?').get(student_id, date);
       return sendJson(res, 200, record);
+    }
+
+    if (pathname === '/api/attendance' && method === 'DELETE') {
+      const studentId = urlObj.searchParams.get('student_id');
+      const date = urlObj.searchParams.get('date');
+      if (studentId && date) {
+        db.prepare('DELETE FROM attendance WHERE student_id = ? AND date = ?').run(studentId, date);
+      }
+      return sendJson(res, 200, { success: true, cleared: true });
     }
 
     // -------------------------------------------------------------
