@@ -1,8 +1,8 @@
 @echo off
-title EduFlow - Platform & Telegram Bot
+title LinguaPro Center CRM & Telegram Bot
 echo ========================================================
-echo   EduFlow - CRM & Telegram Bot Platform
-echo   Dlya uchiteley, kursov i uchebnykh tsentrov
+echo   LinguaPro Center - CRM ^& Telegram Bot Platform
+echo   Telegram Desktop UI + Banking Privacy + Analytics
 echo ========================================================
 echo.
 echo Zapusk servera na http://localhost:3000 ...
