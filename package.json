@@ -1,19 +1,20 @@
 {
-  "name": "eduflow-teacher-platform",
+  "name": "linguapro-crm-platform",
   "version": "1.0.0",
-  "description": "Minimalist modern React platform for course teachers & tutoring centers with Telegram Bot integration",
+  "description": "LinguaPro Center - CRM & Telegram Bot Platform with Telegram Desktop UI",
   "engines": {
-    "node": ">=20.x"
+    "node": ">=22.0.0"
   },
   "scripts": {
-    "start": "node server-local.js"
+    "start": "node server.js"
   },
   "keywords": [
     "teacher",
     "education",
     "telegram-bot",
-    "react"
+    "react",
+    "crm"
   ],
-  "author": "EduFlow",
+  "author": "LinguaPro",
   "license": "MIT"
 }
